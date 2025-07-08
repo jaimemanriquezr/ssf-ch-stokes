@@ -1,0 +1,5 @@
+results/
+jitfailure*
+**/__pycache__/
+*.pyc
+*.out
