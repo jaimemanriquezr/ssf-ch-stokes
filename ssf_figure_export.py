@@ -28,7 +28,7 @@ else:
     export_times = linspace(0., args.final_time, args.time_steps + 1)
 
 parameters = {
-    "simulation_name" : args.sim_name,
+    "simulation_name" : args.simulation_name,
     "input_dir" : args.input_dir,
     "rho_P" : DENSITY_PARTICLES,
     "rho_L" : DENSITY_LIQUIDS,
