@@ -165,20 +165,19 @@ def print_addon(var_name, view,
     Hide(addon_source, view)
 
 def save_state(out_dir, sim_name):
-    state_path = out_dir + sim_name + "/"
-    Path(state_path).mkdir(parents=True, exist_ok=True)
-    SaveState(state_path + sim_name + "_state.pvsm")
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    SaveState(out_dir + sim_name + "_state.pvsm")
 
 def rescale_colormap(display, array):
     _map = GetColorTransferFunction(array[1], display)
     _map.RescaleTransferFunction(0., array[2])
 
-def export_results(sim_name, input_dir, export_path,
+def export_results(simulation_name, input_dir, export_path,
                    export_params, export_times, export_extension,
                    print_bars, print_axes, print_contour, print_quiver,
                    rho_P, rho_L, u_star, max_u, max_c, max_s,
                    axes_font_size, n_ticks):
-    reader, view, layout = load_input(input_dir, sim_name,
+    reader, view, layout = load_input(input_dir, simulation_name,
                                       axes_font_size, n_ticks)
     paraview.simple._DisableFirstRenderCameraReset()
 
@@ -198,7 +197,7 @@ def export_results(sim_name, input_dir, export_path,
     Show(source)
 
     print("Saving state ...")
-    save_state(export_path, sim_name)
+    save_state(export_path, simulation_name)
     print("Saved state!")
 
     print("Exporting frames...")
@@ -212,7 +211,6 @@ def export_results(sim_name, input_dir, export_path,
             break
         for j, k in product(print_bars, print_axes):
             suffix = j*"_colorbar" + k*"_axes" + ("_%.0e." % t) + ext
-            print(suffix)
             export_args = (suffix, export_path, export_params)
             view.AxesGrid.Visibility = k
             for array in ALL_CONCENTRATIONS:
