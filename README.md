@@ -1,4 +1,4 @@
-# Simulation of Slow Sand Filters with a Convection-Reaction-Cahn--Hilliard-Stokes model
+# SSF simulation using a Convection-Reaction-Cahn--Hilliard-Stokes model
 
 ## Exporting figures
 
@@ -7,6 +7,7 @@ pvpython ssf_export_figures.py [simulation_name]
 ```
 
 To export a batch of simulations
+
 ```bash
 source print_all_figures.sh [directory_name]
 ```
