@@ -9,7 +9,7 @@ MAXIMUM_PARTICLES=25.0
 MAXIMUM_LIQUIDS=998.0
 FONT_SIZE=36
 TICKS=3
-FINAL_TIME=1E-2
+FINAL_TIME=1E-1
 N_STEPS=10
 
 for filename in $DIR/*.xdmf; do
@@ -23,6 +23,6 @@ for filename in $DIR/*.xdmf; do
         --final_time=${FINAL_TIME} \
         --time_steps=${N_STEPS} \
         --output=pdf \
-        --all \
+        # --all \
         # --compress
 done
