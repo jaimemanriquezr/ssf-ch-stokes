@@ -142,7 +142,6 @@ filter_args = {"filter_length": FILTER_LENGTH,
                "inflow_velocity" : INFLOW_VELOCITY,
                "inflow_profile" : INFLOW_PROFILE}
 mesh, bdy_fncs, ds = get_filter_geometry(mesh_N=N_MESH, **filter_args)
-print(ds)
 q_null = Constant((0., 0.))
 q_in = INFLOW_VELOCITY
 q_out = q_in * INLET_AREA/ FILTER_AREA
@@ -164,11 +163,16 @@ match INFLOW_PROFILE:
                           'degree': 2}
         q_outflow = Expression(_expr, **outflow_params)
 def get_stokes_bcs(space):
-    bcs = [
-        DirichletBC(space, q_inflow, bdy_fncs["inlet"]),
-        DirichletBC(space, q_null, bdy_fncs["wall"]),
-        DirichletBC(space, q_outflow, bdy_fncs["outlet"])
-    ]
+    if INLET_AREA > 0:
+        bcs = [
+            DirichletBC(space, q_inflow, bdy_fncs["inlet"]),
+            DirichletBC(space, q_null, bdy_fncs["wall"]),
+            DirichletBC(space, q_outflow, bdy_fncs["outlet"])
+        ]
+    else:
+        def on_filter_boundary(x, on_boundary):
+            return on_boundary
+        bcs = [DirichletBC(space, q_null, on_filter_boundary)]
     return bcs
 ##### ============================================================ #####
 
@@ -414,25 +418,29 @@ var_file.write("K_11, K_12, K_21, K_22 = %.2e, %.2e, %.2e, %.2e\n"
                 % (K_11, K_12, K_21, K_22))
 var_file.close()
 #---------------------------------------------------------------------#
+tracked_quantities = []
 ch_energy = []
 energy_CH = {"Form" : (k_rho/2*(dot(grad(u_0),grad(u_0))) + F(u_0)) * dx,
              "List" : ch_energy,
              "Name" : "CahnHilliardEnergy"}
+tracked_quantities.append(energy_CH)
 bf_mass = []
 mass_CH = {"Form" : u_0 * dx,
            "List" : bf_mass,
            "Name" : "BiofilmMass"}
+tracked_quantities.append(mass_CH)
 st_energy = []
 energy_ST = {"Form" : .5 * dot(q_0, q_0) * dx,
              "List" : st_energy,
              "Name" : "StokesEnergy"}
-rx_energy = []
-energy_RX = {"Form" : r_u * mu_0 * dx,
-             "List" : rx_energy,
-             "Name" : "ReactionsEnergy"}
+tracked_quantities.append(energy_ST)
+if C_1 * C_2 > 0:
+    rx_energy = []
+    energy_RX = {"Form" : r_u * mu_0 * dx,
+                 "List" : rx_energy,
+                 "Name" : "ReactionsEnergy"}
+    tracked_quantities.append(energy_RX)
 #---------------------------------------------------------------------#
-tracked_quantities = [energy_CH, energy_ST, energy_RX, mass_CH]
-
 variables_to_save = {}
 for qty in tracked_quantities:
     variables_to_save |= {qty["Name"] : qty["List"]}
