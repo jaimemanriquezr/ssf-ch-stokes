@@ -19,6 +19,8 @@ def get_filter_geometry(filter_length, filter_area,
                          Point(inlet_left, filter_length)]
     else:
         outline_inlet = []
+    filter_domain = Polygon(outline_filter + outline_inlet)
+    mesh = generate_mesh(filter_domain, mesh_N)
 
     def on_filter_inlet(x, on_boundary):
         _radius = inlet_area/2 + DOLFIN_EPS
@@ -49,9 +51,6 @@ def get_filter_geometry(filter_length, filter_area,
 
         on_wall = on_filter_top or on_filter_sides
         return on_boundary and on_wall
-
-    filter_domain = Polygon(outline_filter + outline_inlet)
-    mesh = generate_mesh(filter_domain, mesh_N)
 
     boundary_functions = {"inlet" : on_filter_inlet,
                           "outlet" : on_filter_outlet,
