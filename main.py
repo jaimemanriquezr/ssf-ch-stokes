@@ -233,6 +233,10 @@ q_0.rename("q", "Stokes velocity of fluid")
 u_0.assign(u_init)
 c_1_0.assign(c_1_init)
 s_1_0.assign(s_1_init)
+_c_2 = u_0 - c_1_0
+c_2_0.assign(project(_c_2, c_2_0.function_space()))
+_s_2 = DENSITY_LIQUIDS * (1. - phi_b_0) - s_1_0
+s_2_0.assign(project(_s_2, s_2_0.function_space()))
 
 u_00 = interpolate(u_init, FunctionSpace(mesh, "CG", 2))
 k_rho = KAPPA / DENSITY_PARTICLES
@@ -455,8 +459,6 @@ NLsolver.parameters['relative_tolerance'] = NL_REL_TOL
 NLsolver.parameters['maximum_iterations'] = NL_MAX_IT
 NLsolver.parameters['linear_solver']      = "mumps"
 t, inc = 0., 0
-_c_2 = u_0 - c_1_0
-_s_2 = DENSITY_LIQUIDS * (1. - phi_b_0) - s_1_0
 while (t < t_final):
     solve(stokes_problem, 
           stokes_solution, 
