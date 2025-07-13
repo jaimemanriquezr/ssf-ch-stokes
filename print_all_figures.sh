@@ -15,7 +15,7 @@ N_STEPS=10
 for filename in "$DIR"/*.xdmf; do
     name=${filename#"$DIR/"}
     name=${name%".xdmf"}
-    pvpython ssf_figure_export.py "${name}" \
+    pvpython figures/ssf_figure_export.py "${name}" \
         --maximum_particle_concentration=${MAXIMUM_PARTICLES} \
         --maximum_fluid_concentration=${MAXIMUM_LIQUIDS} \
         --axes_font=${FONT_SIZE} \
