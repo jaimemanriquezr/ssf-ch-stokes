@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ $(whoami) == *"tetralith"* ]; then
+if [[ "$(whoami)" == *"tetralith"* ]]; then
     module load buildtool-easybuild/4.8.0-hpce082752a2
     module load ParaView/5.13.1-hpc1-bdist
 fi
@@ -12,10 +12,10 @@ TICKS=3
 FINAL_TIME=1E-1
 N_STEPS=10
 
-for filename in $DIR/*.xdmf; do
+for filename in "$DIR"/*.xdmf; do
     name=${filename#"$DIR/"}
     name=${name%".xdmf"}
-    pvpython ssf_figure_export.py ${name} \
+    pvpython ssf_figure_export.py "${name}" \
         --maximum_particle_concentration=${MAXIMUM_PARTICLES} \
         --maximum_fluid_concentration=${MAXIMUM_LIQUIDS} \
         --axes_font=${FONT_SIZE} \
@@ -23,6 +23,6 @@ for filename in $DIR/*.xdmf; do
         --final_time=${FINAL_TIME} \
         --time_steps=${N_STEPS} \
         --output=pdf \
-        # --all \
+        # --all 
         # --compress
 done
