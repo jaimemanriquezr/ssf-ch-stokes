@@ -26,7 +26,7 @@ def get_argument_parser():
     parser.add_argument("--inflow_velocity", type=float,
                         default=0.0)
     parser.add_argument("--inflow_profile", type=str,
-                        default="parabolic")
+                        default="constant")
     parser.add_argument("--inflow_concentration", type=float,
                         default=0.0)
 
@@ -42,7 +42,7 @@ def get_argument_parser():
 
     parser.add_argument("--kappa", type=float,
                         default=1E-8/2)
-    parser.add_argument("--mobility_factor", type=float,
+    parser.add_argument("-G", "--mobility_factor", type=float,
                         default=200.0)
     parser.add_argument("--mobility_coefficient", type=int,
                         default=0)
