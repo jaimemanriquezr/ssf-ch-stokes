@@ -1,25 +1,25 @@
 #!/bin/sh
 #SBATCH -n 40
 #SBATCH -t 48:00:00
-#SBATCH -J SSF_2D
+#SBATCH -J BLOB_FAR
 #SBATCH -o output/slurm-%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=jaime.manriquez@math.lth.se
 #cat $0
 
-NAME=filter
+NAME=blob_far
 OUTPUT_DIR="./results/"
-PRESET=filter
-PRESET_PARAMETER=0.3 # 0.6 * 0.5
+PRESET=blobs
+PRESET_PARAMETER=0.15
 
-FILTER_LENGTH=0.5
-FILTER_AREA=0.5
+FILTER_LENGTH=1.0
+FILTER_AREA=1.0
 
-INLET_AREA=0.1
-INLET_CENTER=0.1
-INLET_LENGTH=0.025
+INLET_AREA=0.0
+INLET_CENTER=0.0
+INLET_LENGTH=0.0
 
-N_ELEMENTS=30
+N_ELEMENTS=50
 TIME_STEP=1E-07
 N_STEPS=10
 TIME_SNAP=1E-03
@@ -27,16 +27,14 @@ TIME_SNAP=1E-03
 ABS_TOL=1E-9
 REL_TOL=1E-8
 
-Q_MAX_INFLOW=300.0
-S_INFLOW=988.02 # 0.99 * 998
+Q_MAX_INFLOW=0.0
+S_INFLOW=0.0
 
 run_parameters="
 --name=${NAME} --output_dir=${OUTPUT_DIR}
 --filter_length=${FILTER_LENGTH} --filter_area=${FILTER_AREA}
 --inlet_area=${INLET_AREA} --inlet_length=${INLET_LENGTH} --inlet_center=${INLET_CENTER}
 --preset_name=${PRESET} --preset_parameter=${PRESET_PARAMETER}
---inflow_velocity=${Q_MAX_INFLOW} --inflow_profile=parabolic
---inflow_concentration=${S_INFLOW}
 --time_step_snap=${TIME_SNAP}
 --abs_tol=${ABS_TOL} --rel_tol=${REL_TOL}
 --n_mesh=${N_ELEMENTS} --n_steps=${N_STEPS} --time_step_size=${TIME_STEP}
@@ -49,7 +47,11 @@ conda activate fenicsproject
 ssf="-n 1 -N 1 --exclusive python main.py"
 for N in "${N_list[@]}"; do
     srun ${ssf} --name=zero_rx_${NAME} ${run_parameters} --c_1=0.0 --c_2=0.0 &; sleep 1
-    srun ${ssf} --name=norm_rx_${NAME} ${run_parameters} --c_1=2E1 --c_2=1E3 &; sleep 1
-    srun ${ssf} --name=high_rx_${NAME} ${run_parameters} --c_1=1E3 --c_2=5E3 &; sleep 1
+    srun ${ssf} --name=norm_rx_${NAME} ${run_parameters} --c_1=1E2 --c_2=1E3 &; sleep 1
+    srun ${ssf} --name=high_rx_${NAME} ${run_parameters} --c_1=1E3 --c_2=1E4 &; sleep 1
+
+    srun ${ssf} --name=zero_rx_${NAME}_gamma1 ${run_parameters} -G=1 --c_1=0.0 --c_2=0.0 &; sleep 1
+    srun ${ssf} --name=norm_rx_${NAME}_gamma1 ${run_parameters} -G=1 --c_1=1E2 --c_2=1E3 &; sleep 1
+    srun ${ssf} --name=high_rx_${NAME}_gamma1 ${run_parameters} -G=1 --c_1=1E3 --c_2=1E4 &; sleep 1
 done
 wait
