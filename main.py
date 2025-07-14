@@ -20,10 +20,14 @@ class CahnHilliardEquation(NonlinearProblem):
         A += self.mass
 PARTICLES_N = 2
 LIQUIDS_N = 2
+IS_MASS_LUMPED = True
 #---------------------------------------------------------------------#
 from geometry import *
 from initial_conditions import *
 from cli_utilities import get_argument_parser
+def _assign(u, v):
+    _v = project(v, u.function_space())
+    u.assign(_v)
 ##### ============================================================ #####
 ##### ==================== INPUT ARGUMENTS ======================= #####
 ##### ============================================================ #####
@@ -74,9 +78,6 @@ TIME_STEP_SIZE = args.time_step_size
 N_MESH = args.n_mesh
 
 GRAVITY_CONSTANT = args.gravity
-
-# IS_MASS_LUMPED = args.is_mass_lumped # default: True
-IS_MASS_LUMPED = True
 
 NL_ABS_TOL = args.abs_tol
 NL_REL_TOL = args.rel_tol
@@ -132,7 +133,7 @@ match POTENTIAL_NAME.lower():
 ##### ============================================================ #####
 
 ##### ============================================================ #####
-##### ================== GEOMETRY AND B.C. ======================= #####
+##### ======================== GEOMETRY ========================== #####
 ##### ============================================================ #####
 filter_args = {"filter_length": FILTER_LENGTH,
                "filter_area" : FILTER_AREA,
@@ -163,16 +164,6 @@ match INFLOW_PROFILE:
                           'degree': 2}
         q_outflow = Expression(_expr, **outflow_params)
 def get_stokes_bcs(space):
-    if INLET_AREA > 0:
-        bcs = [
-            DirichletBC(space, q_inflow, bdy_fncs["inlet"]),
-            DirichletBC(space, q_null, bdy_fncs["wall"]),
-            DirichletBC(space, q_outflow, bdy_fncs["outlet"])
-        ]
-    else:
-        def on_filter_boundary(x, on_boundary):
-            return on_boundary
-        bcs = [DirichletBC(space, q_null, on_filter_boundary)]
     return bcs
 ##### ============================================================ #####
 
@@ -233,14 +224,16 @@ q_0.rename("q", "Stokes velocity of fluid")
 u_0.assign(u_init)
 c_1_0.assign(c_1_init)
 s_1_0.assign(s_1_init)
+
+
 _c_2 = u_0 - c_1_0
-c_2_0.assign(project(_c_2, c_2_0.function_space()))
+_assign(c_2_0, _c_2)
 _s_2 = DENSITY_LIQUIDS * (1. - (u_0 / DENSITY_PARTICLES)) - s_1_0
-s_2_0.assign(project(_s_2, s_2_0.function_space()))
+_assign(s_2_0, _s_2)
 
 u_00 = interpolate(u_init, FunctionSpace(mesh, "CG", 2))
 k_rho = KAPPA / DENSITY_PARTICLES
-mu_0.assign(project(-k_rho*div(grad(u_00)) + f(u_00), mu_0.function_space()))
+_assign(mu_0, -k_rho*(div(grad(u_00))) + f(u_00))
 
 __dw = TrialFunction(w_0.function_space())
 __w = TestFunction(w_0.function_space())
@@ -277,7 +270,18 @@ stokes_LHS = (nu*inner(strain(dq),strain(_q))*dx - dp*(div(_q) + _xi)*dx
 stokes_RHS = -dot(g, _q)*dx - ALPHA*dot(mu_0*grad(w_0),_q)*dx
 #----------------------------------------------------------------------#
 stokes_problem = (stokes_LHS == stokes_RHS)
-stokes_bcs = get_stokes_bcs(stokes_space.sub(0))
+_space = stokes_space.sub(0)
+if INLET_AREA > 0:
+    stokes_bcs = [
+        DirichletBC(_space, q_inflow, bdy_fncs["inlet"]),
+        DirichletBC(_space, q_null, bdy_fncs["wall"]),
+        DirichletBC(_space, q_outflow, bdy_fncs["outlet"])
+    ]
+else:
+    def on_filter_boundary(x, on_boundary): return on_boundary
+    stokes_bcs = [
+        DirichletBC(_space, q_null, on_filter_boundary)
+    ]
 stokes_parameters = {"linear_solver" : "mumps"}
 #----------------------------------------------------------------------#
 ### BIOFILM
@@ -438,7 +442,7 @@ energy_ST = {"Form" : .5 * dot(q_0, q_0) * dx,
              "List" : st_energy,
              "Name" : "StokesEnergy"}
 tracked_quantities.append(energy_ST)
-if C_1 * C_2 > 0:
+if (C_1**2 + C_2**2) > 0:
     rx_energy = []
     energy_RX = {"Form" : r_u * mu_0 * dx,
                  "List" : rx_energy,
