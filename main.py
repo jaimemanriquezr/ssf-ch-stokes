@@ -45,7 +45,7 @@ FILTER_AREA = args.filter_area
 INLET_LENGTH = args.inlet_length
 INLET_AREA = args.inlet_area
 INLET_CENTER = args.inlet_center
-INFLOW_VELOCITY = args.inflow_velocity
+INFLOW_VELOCITY = -args.inflow_velocity
 INFLOW_PROFILE = args.inflow_profile
 INFLOW_CONCENTRATION = args.inflow_concentration
 
