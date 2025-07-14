@@ -446,6 +446,7 @@ if (C_1**2 + C_2**2) > 0:
                  "Name" : "ReactionsEnergy"}
     tracked_quantities.append(energy_RX)
 #---------------------------------------------------------------------#
+time_list = []
 variables_to_save = {}
 for qty in tracked_quantities:
     variables_to_save |= {qty["Name"] : qty["List"]}
@@ -461,6 +462,9 @@ NLsolver.parameters['maximum_iterations'] = NL_MAX_IT
 NLsolver.parameters['linear_solver']      = "mumps"
 t, inc = 0., 0
 save_results(0.)
+for qty in tracked_quantities:
+    qty["List"].append(assemble(qty["Form"]))
+time_list.append(0.)
 while (t < t_final):
     solve(stokes_problem, stokes_solution, stokes_bcs, 
           solver_parameters=stokes_parameters)
@@ -479,11 +483,13 @@ while (t < t_final):
     inc += 1
     # print("Iteration: %d/%d" % (inc, TIME_STEP_NUMBER))
     #-----------------------------------------------------------------#
-    for qty in tracked_quantities:
-        qty["List"].append(assemble(qty["Form"]))
     if (inc % inc_mod) == 0:
         save_results(t)
+        for qty in tracked_quantities:
+            qty["List"].append(assemble(qty["Form"]))
+        time_list.append(t)
 print("Saving tracked quantities...")
+variables_to_save |= {"time" : time_list}
 savemat(OUTPUT_DIR + SIMULATION_NAME + "_ENERGY.mat", variables_to_save)
 print("Done!")
 ##### ============================================================ #####
