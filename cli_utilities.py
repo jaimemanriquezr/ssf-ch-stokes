@@ -11,18 +11,18 @@ def get_argument_parser():
     parser.add_argument("--preset_name", type=str,
                         default="blobs")
     parser.add_argument("--preset_parameter", type=float,
-                        default=.05)
+                        default=.15)
 
     parser.add_argument("--filter_length", type=float,
                         default=1.0)
     parser.add_argument("--filter_area", type=float,
                         default=1.0)
     parser.add_argument("--inlet_length", type=float,
-                        default=0.1)
+                        default=0.0)
     parser.add_argument("--inlet_area", type=float,
-                        default=0.1)
+                        default=0.0)
     parser.add_argument("--inlet_center", type=float,
-                        default=0.2)
+                        default=0.0)
     parser.add_argument("--inflow_velocity", type=float,
                         default=0.0)
     parser.add_argument("--inflow_profile", type=str,
@@ -50,9 +50,9 @@ def get_argument_parser():
                         default=1.0)
 
     parser.add_argument("--c_1", type=float,
-                        default=1.0)
+                        default=0.0)
     parser.add_argument("--c_2", type=float,
-                        default=1.0)
+                        default=0.0)
     parser.add_argument("--k_11", type=float,
                         default=2.00E-02)
     parser.add_argument("--k_12", type=float,
@@ -83,6 +83,9 @@ def get_argument_parser():
                         default=9.81)
 
     parser.add_argument("--is_mass_lumped", 
+                        action='store_true')
+
+    parser.add_argument("--quadrilaterals", 
                         action='store_true')
 
     parser.add_argument("--abs_tol", type=float,

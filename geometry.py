@@ -3,7 +3,7 @@ from mshr import Polygon, generate_mesh
 import numpy as np
 def get_filter_geometry(filter_length, filter_area,
                         inlet_length, inlet_area, inlet_center,
-                        mesh_N, **_):
+                        mesh_N, quads, **_):
     outline_filter = [Point(0., filter_length),
                       Point(0., 0.),
                       Point(filter_area, 0.),
@@ -17,10 +17,16 @@ def get_filter_geometry(filter_length, filter_area,
                          Point(inlet_right, total_length),
                          Point(inlet_left, total_length), 
                          Point(inlet_left, filter_length)]
+        filter_domain = Polygon(outline_filter + outline_inlet)
+        mesh = generate_mesh(filter_domain, mesh_N)
     else:
-        outline_inlet = []
-    filter_domain = Polygon(outline_filter + outline_inlet)
-    mesh = generate_mesh(filter_domain, mesh_N)
+        SW = Point(0., 0.)
+        NE = Point(filter_area, filter_length)
+        if quads:
+            cell = CellType.Type.quadrilateral
+        else:
+            cell = CellType.Type.triangle
+        mesh = RectangleMesh.create([SW, NE], [mesh_N, mesh_N], cell)
 
     def on_filter_inlet(x, on_boundary):
         _radius = inlet_area/2 + DOLFIN_EPS

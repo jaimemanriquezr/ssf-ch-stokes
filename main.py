@@ -142,7 +142,9 @@ filter_args = {"filter_length": FILTER_LENGTH,
                "inlet_center" : INLET_CENTER,
                "inflow_velocity" : INFLOW_VELOCITY,
                "inflow_profile" : INFLOW_PROFILE}
-mesh, bdy_fncs, ds = get_filter_geometry(mesh_N=N_MESH, **filter_args)
+mesh, bdy_fncs, ds = get_filter_geometry(mesh_N=N_MESH, 
+                                         quads=args.quadrilaterals,
+                                         **filter_args)
 
 q_null = Constant((0., 0.))
 q_in = INFLOW_VELOCITY
