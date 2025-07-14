@@ -235,7 +235,7 @@ c_1_0.assign(c_1_init)
 s_1_0.assign(s_1_init)
 _c_2 = u_0 - c_1_0
 c_2_0.assign(project(_c_2, c_2_0.function_space()))
-_s_2 = DENSITY_LIQUIDS * (1. - phi_b_0) - s_1_0
+_s_2 = DENSITY_LIQUIDS * (1. - (u_0 / DENSITY_PARTICLES)) - s_1_0
 s_2_0.assign(project(_s_2, s_2_0.function_space()))
 
 u_00 = interpolate(u_init, FunctionSpace(mesh, "CG", 2))
