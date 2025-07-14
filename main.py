@@ -133,7 +133,7 @@ match POTENTIAL_NAME.lower():
 ##### ============================================================ #####
 
 ##### ============================================================ #####
-##### ======================== GEOMETRY ========================== #####
+##### ================= GEOMETRY AND B.C. ======================== #####
 ##### ============================================================ #####
 filter_args = {"filter_length": FILTER_LENGTH,
                "filter_area" : FILTER_AREA,
@@ -143,6 +143,7 @@ filter_args = {"filter_length": FILTER_LENGTH,
                "inflow_velocity" : INFLOW_VELOCITY,
                "inflow_profile" : INFLOW_PROFILE}
 mesh, bdy_fncs, ds = get_filter_geometry(mesh_N=N_MESH, **filter_args)
+
 q_null = Constant((0., 0.))
 q_in = INFLOW_VELOCITY
 q_out = q_in * INLET_AREA/ FILTER_AREA
@@ -163,8 +164,6 @@ match INFLOW_PROFILE:
                           'b': FILTER_AREA,
                           'degree': 2}
         q_outflow = Expression(_expr, **outflow_params)
-def get_stokes_bcs(space):
-    return bcs
 ##### ============================================================ #####
 
 ##### ============================================================ #####
@@ -224,7 +223,6 @@ q_0.rename("q", "Stokes velocity of fluid")
 u_0.assign(u_init)
 c_1_0.assign(c_1_init)
 s_1_0.assign(s_1_init)
-
 
 _c_2 = u_0 - c_1_0
 _assign(c_2_0, _c_2)
@@ -405,7 +403,6 @@ output_file.parameters["flush_output"]          = True
 def save_results(t):
     for fx in [u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0]:
         output_file.write(fx, t)
-save_results(0.)
 #---------------------------------------------------------------------#
 var_file = open(OUTPUT_DIR + SIMULATION_NAME + "_parameters.txt", "w")
 var_file.write("k_b, k_f = %i, %i\n" 
@@ -463,10 +460,9 @@ NLsolver.parameters['relative_tolerance'] = NL_REL_TOL
 NLsolver.parameters['maximum_iterations'] = NL_MAX_IT
 NLsolver.parameters['linear_solver']      = "mumps"
 t, inc = 0., 0
+save_results(0.)
 while (t < t_final):
-    solve(stokes_problem, 
-          stokes_solution, 
-          stokes_bcs, 
+    solve(stokes_problem, stokes_solution, stokes_bcs, 
           solver_parameters=stokes_parameters)
     assign(q_0, stokes_solution.sub(0))
     #-----------------------------------------------------------------#
@@ -475,9 +471,9 @@ while (t < t_final):
     assign(mu_0, biofilm_solution.sub(1))
     assign(w_0,  biofilm_solution.sub(2))
     assign(c_1_0, biofilm_solution.sub(3))
-    c_2_0.assign(project(_c_2, c_2_0.function_space()))
+    _assign(c_2_0, _c_2)
     assign(s_1_0, biofilm_solution.sub(4))
-    s_2_0.assign(project(_s_2, s_2_0.function_space()))
+    _assign(s_2_0, _s_2)
     #-----------------------------------------------------------------#
     t   += dt
     inc += 1
