@@ -9,7 +9,7 @@ def get_filter_geometry(filter_length, filter_area,
                       Point(filter_area, 0.),
                       Point(filter_area, filter_length)]
 
-    if inlet_area > 0:
+    if inlet_length > 0:
         inlet_left = inlet_center - inlet_area/2
         inlet_right = inlet_center + inlet_area/2
         total_length = filter_length + inlet_length

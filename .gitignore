@@ -4,3 +4,4 @@ jitfailure*
 **/__pycache__/
 *.pyc
 *.out
+*.simg

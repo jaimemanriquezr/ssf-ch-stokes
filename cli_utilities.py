@@ -68,7 +68,7 @@ def get_argument_parser():
                         default=1.0)
 
     parser.add_argument("--friction_factor", type=float,
-                        default=1E-12)
+                        default=1E-4)
 
     parser.add_argument("--n_steps", type=int,
                         default=20)

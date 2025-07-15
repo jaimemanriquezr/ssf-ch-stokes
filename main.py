@@ -403,7 +403,7 @@ output_file.parameters['rewrite_function_mesh'] = False
 output_file.parameters["functions_share_mesh"]  = True
 output_file.parameters["flush_output"]          = True
 def save_results(t):
-    for fx in [u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0]:
+    for fx in [q_0, u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0]:
         output_file.write(fx, t)
 #---------------------------------------------------------------------#
 var_file = open(OUTPUT_DIR + SIMULATION_NAME + "_parameters.txt", "w")
@@ -486,6 +486,7 @@ while (t < t_final):
     # print("Iteration: %d/%d" % (inc, TIME_STEP_NUMBER))
     #-----------------------------------------------------------------#
     if (inc % inc_mod) == 0:
+        print("t = %.8e" % t)
         save_results(t)
         for qty in tracked_quantities:
             qty["List"].append(assemble(qty["Form"]))
