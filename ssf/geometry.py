@@ -9,7 +9,7 @@ def get_filter_geometry(filter_length, filter_area,
                       Point(filter_area, 0.),
                       Point(filter_area, filter_length)]
 
-    if inlet_length > 0:
+    if inlet_area > 0:
         inlet_left = inlet_center - inlet_area/2
         inlet_right = inlet_center + inlet_area/2
         total_length = filter_length + inlet_length
@@ -57,10 +57,13 @@ def get_filter_geometry(filter_length, filter_area,
 
         on_wall = on_filter_top or on_filter_sides
         return on_boundary and on_wall
+    def on_filter_boundary(x, on_boundary):
+        return on_boundary
 
     boundary_functions = {"inlet" : on_filter_inlet,
                           "outlet" : on_filter_outlet,
-                          "wall" : on_filter_wall}
+                          "wall" : on_filter_wall,
+                          "whole" : on_filter_boundary}
     ds = get_boundary_measure(mesh, boundary_functions)
     return mesh, boundary_functions, ds
 
