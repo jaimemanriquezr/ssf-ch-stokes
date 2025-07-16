@@ -203,7 +203,8 @@ _lt = lambda v : lt(v, DENSITY_PARTICLES / (2 + GAMMA))
 u_m = DENSITY_PARTICLES / (2 + GAMMA)
 
 def u_M(v):
-    _M = LAMBDA * v * pow(1. - v / DENSITY_PARTICLES, 1 + GAMMA)
+    _phi = v / DENSITY_PARTICLES
+    _M = LAMBDA * v * pow(1. - _phi, 1 + GAMMA)
     return (_M + abs(_M)) / 2
 def u_M_up(v):
     return conditional(_lt(v), u_M(v), u_M(u_m))
@@ -211,7 +212,8 @@ def u_M_dn(v):
     return conditional(_lt(v), Constant(0.), u_M(v) - u_M(u_m))
 
 def c_M(u):
-    _M = LAMBDA * pow(1. - u / DENSITY_PARTICLES, 1 + GAMMA)
+    _phi = u / DENSITY_PARTICLES
+    _M = LAMBDA * pow(1. - _phi, 1 + GAMMA)
     return (_M + abs(_M)) / 2
 def c_M_up(u):
     return conditional(_lt(u), c_M(u), u_M(u_m) / u)
@@ -219,7 +221,8 @@ def c_M_dn(u):
     return conditional(_lt(u), Constant(0.), c_M(u) - u_M(u_m) / u)
 
 def s_M(v):
-    _M = LAMBDA * _phi * pow(1. - v / DENSITY_PARTICLES, GAMMA)
+    _phi = v / DENSITY_PARTICLES
+    _M = LAMBDA * _phi * pow(1. - _phi, GAMMA)
     return (_M + abs(_M)) / 2
 
 n_K = FacetNormal(mesh)('+')
