@@ -61,7 +61,6 @@ NL_REL_TOL = args.rel_tol
 NL_MAX_IT = args.max_iterations
 #----------------------------------------------------------------------#
 dt = TIME_STEP_SIZE
-t_final = TIME_STEP_NUMBER * dt
 inc_mod = round(TIME_STEP_SNAP / TIME_STEP_SIZE)
 #----------------------------------------------------------------------#
 u_init, c_1_init, s_1_init = get_preset(PRESET_NAME, DENSITY_PARTICLES,
@@ -382,20 +381,20 @@ NLsolver = NewtonSolver()
 NLsolver.parameters['absolute_tolerance'] = NL_ABS_TOL
 NLsolver.parameters['relative_tolerance'] = NL_REL_TOL
 NLsolver.parameters['maximum_iterations'] = NL_MAX_IT
-NLsolver.parameters['linear_solver']      = "mumps"
-t, inc, n_it = 0., 0, 0
-while (t < t_final):
+NLsolver.parameters['linear_solver'] = "petsc"
+t, t_it, n_its = 0., 0, 0
+while (t_it < TIME_STEP_NUMBER):
     solve(stokes_problem, stokes_solution, stokes_bcs, 
           solver_parameters=stokes_parameters)
     assign(q_0, stokes_solution.sub(0))
     #------------------------------------------------------------------#
-    if (inc % inc_mod) == 0:
-        write_results(t, n_it)
+    if (t_it % inc_mod) == 0:
+        write_results(t, n_its)
     #------------------------------------------------------------------#
-    n_it, _ = NLsolver.solve(biofilm_problem, biofilm_solution.vector())
+    n_its,_ = NLsolver.solve(biofilm_problem, biofilm_solution.vector())
     #------------------------------------------------------------------#
     t   += dt
-    inc += 1
+    t_it += 1
     # print("Iteration: %d/%d" % (inc, TIME_STEP_NUMBER))
     #------------------------------------------------------------------#
     assign(u_0,  biofilm_solution.sub(0))
@@ -403,9 +402,9 @@ while (t < t_final):
     assign(w_0,  biofilm_solution.sub(2))
     assign(c_1_0, biofilm_solution.sub(3))
     assign(s_1_0, biofilm_solution.sub(4))
-    _assign(c_2_0, _c_2)
-    _assign(s_2_0, _s_2)
-write_results(t, n_it)
+    proj_assign(c_2_0, _c_2)
+    proj_assign(s_2_0, _s_2)
+write_results(t, n_its)
 #----------------------------------------------------------------------#
 print("Saving tracked quantities...")
 export_vars |= {"Time" : time_list, "NewtonIterations" : iteration_list}
