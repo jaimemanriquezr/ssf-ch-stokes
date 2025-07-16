@@ -4,9 +4,10 @@ if [[ "$(whoami)" == *"tetralith"* ]]; then
     module load ParaView/5.13.1-hpc1-bdist
 fi
 N_STEPS=${1:-10}
-DIR=${2:-./experiments/}
+TIME_SNAP=${2:-"2E-04"}
+DIR=${3:-./experiments/}
 
 for filename in "$DIR"*.sh; do
     echo "Batching ${filename}"
-    sbatch "${filename}" "${N_STEPS}"
+    sbatch "${filename}" "${N_STEPS}" "${TIME_SNAP}"
 done

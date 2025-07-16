@@ -20,7 +20,6 @@ class CahnHilliardEquation(NonlinearProblem):
 def get_fem_spaces(mesh, k_particles=2, k_liquids=2):
     DG_0 = FiniteElement("DG", mesh.ufl_cell(), 0)
     CG_1 = FiniteElement("CG", mesh.ufl_cell(), 1)
-    V_CG_2 = VectorElement("CG", mesh.ufl_cell(), 2)
     R = FiniteElement("Real", mesh.ufl_cell(), 0)
 
     u_list   = [DG_0, CG_1, CG_1]
@@ -30,7 +29,9 @@ def get_fem_spaces(mesh, k_particles=2, k_liquids=2):
     biofilm_elements = u_list + c_s_list + hat_list
     biofilm_space = FunctionSpace(mesh, MixedElement(biofilm_elements))
 
-    stokes_elements = [V_CG_2, DG_0, R]
+    q_element = VectorElement("CG", mesh.ufl_cell(), 4)
+    p_element = FiniteElement("DG", mesh.ufl_cell(), 3)
+    stokes_elements = [q_element, p_element, R]
     stokes_space = FunctionSpace(mesh, MixedElement(stokes_elements))
     return biofilm_space, stokes_space
 

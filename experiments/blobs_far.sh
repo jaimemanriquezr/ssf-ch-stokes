@@ -10,11 +10,10 @@ module load buildtool-easybuild/4.8.0-hpce082752a2
 module load Miniforge/24.7.1-2-hpc1
 conda activate fenicsproject
 SIM_NAME=blob_far
-N_ELEMENTS=30
 TIME_STEP=1E-07
 
 N_STEPS=${1:-20}
-TIME_SNAP=2E-04
+TIME_SNAP=${2:-"2E-04"}
 
 ABS_TOL=1E-8
 REL_TOL=1E-7

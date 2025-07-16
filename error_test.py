@@ -2,9 +2,9 @@ from dolfin import *
 import numpy as np
 from ssf.fem import get_fem_spaces, get_sub_space
 
-N_0 = 40
-INPUT_DIR = "./results/results_3/"
-SIM_NAME = "zero_rx_TOL9__blob_far"
+N_0 = 50
+INPUT_DIR = "./results/"
+SIM_NAME = "norm_rx_TOL9_blob_far"
 
 def load_data(n):
     _mesh = Mesh()
@@ -29,11 +29,11 @@ def load_data(n):
     data_file.read_checkpoint(s_1, "s_1")
     data_file.read_checkpoint(q, "q")
 
-    return h, u, c_1, s_1, q
+    return _mesh, u, c_1, s_1, q
 
-h_0, u_0, c_1_0, s_1_0, q_0 = load_data(N_0)
+mesh_0, u_0, c_1_0, s_1_0, q_0 = load_data(N_0)
 
-h_list = []
+mesh_list = []
 err_u = []
 err_c_1 = []
 err_s_1 = []
@@ -42,21 +42,21 @@ err_q = []
 def compute_error(v, v_ref):
     proj_v = project(v_ref, v.function_space())
     return np.sqrt(assemble(((proj_v - v) ** 2) * dx))
-def error_rate(err_list, h_list):
+def error_rate(err_list, mesh_list):
     err = np.array(err_list)
-    h = np.array(h_list)
+    h = np.array([m.hmax() for m in mesh_list])
     return np.log(err[1:] / err[:-1]) / np.log(h[1:] / h[:-1])
 
 for n in [25, 30, 35]:
-    h, u, c_1, s_1, q = load_data(n)
+    mesh, u, c_1, s_1, q = load_data(n)
 
-    h_list.append(h)
+    mesh_list.append(mesh)
     err_u.append(compute_error(u, u_0))
     err_c_1.append(compute_error(c_1, c_1_0))
     err_s_1.append(compute_error(s_1, s_1_0))
     err_q.append(compute_error(q, q_0))
 
-r_u = error_rate(err_u, h_list)
-r_c_1 = error_rate(err_c_1, h_list)
-r_s_1 = error_rate(err_s_1, h_list)
-r_q = error_rate(err_q, h_list)
+r_u = error_rate(err_u, mesh_list)
+r_c_1 = error_rate(err_c_1, mesh_list)
+r_s_1 = error_rate(err_s_1, mesh_list)
+r_q = error_rate(err_q, mesh_list)
