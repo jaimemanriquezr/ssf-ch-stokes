@@ -42,9 +42,9 @@ def get_argument_parser():
 
     parser.add_argument("--kappa", type=float,
                         default=1E-8/2)
-    parser.add_argument("-G", "--mobility_factor", type=float,
+    parser.add_argument("--mobility_factor", type=float,
                         default=200.0)
-    parser.add_argument("--mobility_coefficient", type=int,
+    parser.add_argument("-G", "--mobility_coefficient", type=int,
                         default=0)
     parser.add_argument("--bulk_potential_factor", type=float,
                         default=1.0)
