@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -n 21
+#SBATCH -n 24
 #SBATCH -t 48:00:00
 #SBATCH -J BLOB_FAR
 #SBATCH -o output/slurm-%j.out
@@ -48,29 +48,33 @@ function run_experiment () {
 	--c_1="$C1" --c_2="$C2" "${ADDITIONAL_ARGS}" & sleep 1
 }
 
-run_experiment "zero_rx_TOL9_" 40 1E-9 1E-8 0.0 0.0
-run_experiment "norm_rx_TOL9_" 40 1E-9 1E-8 1E2 1E3
-run_experiment "high_rx_TOL9_" 40 1E-9 1E-8 1E3 1E4
+run_experiment "zero_rx_TOL9" 50 1E-9 1E-8 0.0 0.0
+run_experiment "norm_rx_TOL9" 50 1E-9 1E-8 1E2 1E3
+run_experiment "high_rx_TOL9" 50 1E-9 1E-8 1E3 1E4
 
-run_experiment "zero_rx_TOL9_" 35 1E-9 1E-8 0.0 0.0
-run_experiment "norm_rx_TOL9_" 35 1E-9 1E-8 1E2 1E3
-run_experiment "high_rx_TOL9_" 35 1E-9 1E-8 1E3 1E4
+run_experiment "zero_rx_TOL9" 40 1E-9 1E-8 0.0 0.0
+run_experiment "norm_rx_TOL9" 40 1E-9 1E-8 1E2 1E3
+run_experiment "high_rx_TOL9" 40 1E-9 1E-8 1E3 1E4
 
-run_experiment "zero_rx_TOL9_" 30 1E-9 1E-8 0.0 0.0
-run_experiment "norm_rx_TOL9_" 30 1E-9 1E-8 1E2 1E3
-run_experiment "high_rx_TOL9_" 30 1E-9 1E-8 1E3 1E4
+run_experiment "zero_rx_TOL9" 35 1E-9 1E-8 0.0 0.0
+run_experiment "norm_rx_TOL9" 35 1E-9 1E-8 1E2 1E3
+run_experiment "high_rx_TOL9" 35 1E-9 1E-8 1E3 1E4
 
-run_experiment "zero_rx_TOL8_" 30 1E-8 1E-7 0.0 0.0
-run_experiment "norm_rx_TOL8_" 30 1E-8 1E-7 1E2 1E3
-run_experiment "high_rx_TOL8_" 30 1E-8 1E-7 1E3 1E4
+run_experiment "zero_rx_TOL9" 30 1E-9 1E-8 0.0 0.0
+run_experiment "norm_rx_TOL9" 30 1E-9 1E-8 1E2 1E3
+run_experiment "high_rx_TOL9" 30 1E-9 1E-8 1E3 1E4
 
-run_experiment "zero_rx_TOL7_" 30 1E-7 1E-6 0.0 0.0
-run_experiment "norm_rx_TOL7_" 30 1E-7 1E-6 1E2 1E3
-run_experiment "high_rx_TOL7_" 30 1E-7 1E-6 1E3 1E4
+run_experiment "zero_rx_TOL8" 30 1E-8 1E-7 0.0 0.0
+run_experiment "norm_rx_TOL8" 30 1E-8 1E-7 1E2 1E3
+run_experiment "high_rx_TOL8" 30 1E-8 1E-7 1E3 1E4
 
-run_experiment "zero_rx_TOL9_" 25 1E-9 1E-8 0.0 0.0
-run_experiment "norm_rx_TOL9_" 25 1E-9 1E-8 1E2 1E3
-run_experiment "high_rx_TOL9_" 25 1E-9 1E-8 1E3 1E4
+run_experiment "zero_rx_TOL7" 30 1E-7 1E-6 0.0 0.0
+run_experiment "norm_rx_TOL7" 30 1E-7 1E-6 1E2 1E3
+run_experiment "high_rx_TOL7" 30 1E-7 1E-6 1E3 1E4
+
+run_experiment "zero_rx_TOL9" 25 1E-9 1E-8 0.0 0.0
+run_experiment "norm_rx_TOL9" 25 1E-9 1E-8 1E2 1E3
+run_experiment "high_rx_TOL9" 25 1E-9 1E-8 1E3 1E4
 
 run_experiment "zero_rx_TOL9_gamma1" 30 1E-9 1E-8 0.0 0.0 "-G=1"
 run_experiment "norm_rx_TOL9_gamma1" 30 1E-9 1E-8 1E2 1E3 "-G=1"
