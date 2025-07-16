@@ -111,8 +111,10 @@ biofilm_space, stokes_space = get_fem_spaces(mesh)
 ## The following functions will hold the solutions of the scheme
 ## at each time step. In other words, they correspond to u^{n+1}
 biofilm_solution  = Function(biofilm_space)
+biofilm_solution.rename("U_h", "")
 u, mu, w, c_1, s_1, u_hat, c_1_hat, s_1_hat = split(biofilm_solution)
 stokes_solution  = Function(stokes_space)
+stokes_solution.rename("Q_h", "")
 q, p, xi = split(stokes_solution)
 #----------------------------------------------------------------------#
 ## The following functions hold the data of the initial data
