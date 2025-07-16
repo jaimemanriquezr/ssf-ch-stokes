@@ -28,9 +28,9 @@ from cli_utilities import get_argument_parser
 def _assign(u, v):
     _v = project(v, u.function_space())
     u.assign(_v)
-##### ============================================================ #####
-##### ==================== INPUT ARGUMENTS ======================= #####
-##### ============================================================ #####
+##### =========================================================== #####
+##### ==================== INPUT ARGUMENTS ====================== #####
+##### =========================================================== #####
 parser = get_argument_parser()
 args = parser.parse_args()
 
@@ -130,11 +130,11 @@ match POTENTIAL_NAME.lower():
             phi = u / DENSITY_PARTICLES
             f0 = 1/4 * PSI_0
             return f0 * (4*pow(phi, 3) - 6*pow(phi, 2) - pow(phi, 2))
-##### ============================================================ #####
+##### =========================================================== #####
 
-##### ============================================================ #####
-##### ================= GEOMETRY AND B.C. ======================== #####
-##### ============================================================ #####
+##### =========================================================== #####
+##### ================= GEOMETRY AND B.C. ======================= #####
+##### =========================================================== #####
 filter_args = {"filter_length": FILTER_LENGTH,
                "filter_area" : FILTER_AREA,
                "inlet_length" : INLET_LENGTH,
@@ -166,11 +166,11 @@ match INFLOW_PROFILE:
                           'b': FILTER_AREA,
                           'degree': 2}
         q_outflow = Expression(_expr, **outflow_params)
-##### ============================================================ #####
+##### =========================================================== #####
 
-##### ============================================================ #####
-##### ========== FINITE ELEMENT SPACES AND FUNCTIONS ============= #####
-##### ============================================================ #####
+##### =========================================================== #####
+##### ========== FINITE ELEMENT SPACES AND FUNCTIONS ============ #####
+##### =========================================================== #####
 DG_0 = FiniteElement("DG", mesh.ufl_cell(), 0)
 CG_1 = FiniteElement("CG", mesh.ufl_cell(), 1)
 V_CG_2 = VectorElement("CG", mesh.ufl_cell(), 2)
@@ -248,11 +248,11 @@ solve(__mass, w_0.vector(), assemble(u_0 * __w * dx), 'mumps')
 assign(biofilm_solution, [u_0, mu_0, w_0, 
                           c_1_0, s_1_0, 
                           u_0, c_1_0, s_1_0])
-##### ============================================================ #####
+##### =========================================================== #####
 
-##### ============================================================ #####
-##### ================= VARIATIONAL PROBLEMS ===================== #####
-##### ============================================================ #####
+##### =========================================================== #####
+##### ================= VARIATIONAL PROBLEMS ==================== #####
+##### =========================================================== #####
 ### STOKES
 phi_b_0 = u_0 / DENSITY_PARTICLES
 # Stokes functions:
@@ -393,19 +393,11 @@ biofilm_jacobian  = derivative(biofilm_F, biofilm_solution, dU_h)
 biofilm_problem = CahnHilliardEquation(f = biofilm_F, 
                                        df = biofilm_jacobian, 
                                        mass = biofilm_mass)
-##### ============================================================ #####
+##### =========================================================== #####
 
-##### ============================================================ #####
-##### ==================== OUTPUT RESULTS ======================== #####
-##### ============================================================ #####
-output_file = XDMFFile(OUTPUT_DIR + SIMULATION_NAME + ".xdmf")
-output_file.parameters['rewrite_function_mesh'] = False
-output_file.parameters["functions_share_mesh"]  = True
-output_file.parameters["flush_output"]          = True
-def save_results(t):
-    for fx in [q_0, u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0]:
-        output_file.write(fx, t)
-#---------------------------------------------------------------------#
+##### =========================================================== #####
+##### ==================== OUTPUT RESULTS ======================= #####
+##### =========================================================== #####
 var_file = open(OUTPUT_DIR + SIMULATION_NAME + "_parameters.txt", "w")
 var_file.write("k_b, k_f = %i, %i\n" 
                 % (PARTICLES_N, LIQUIDS_N))
@@ -426,53 +418,64 @@ var_file.write("K_11, K_12, K_21, K_22 = %.2e, %.2e, %.2e, %.2e\n"
 var_file.close()
 #---------------------------------------------------------------------#
 tracked_quantities = []
-ch_energy = []
-energy_CH = {"Form" : (k_rho/2*(dot(grad(u_0),grad(u_0))) + F(u_0)) * dx,
-             "List" : ch_energy,
-             "Name" : "CahnHilliardEnergy"}
-tracked_quantities.append(energy_CH)
-bf_mass = []
-mass_CH = {"Form" : u_0 * dx,
-           "List" : bf_mass,
-           "Name" : "BiofilmMass"}
-tracked_quantities.append(mass_CH)
-st_energy = []
-energy_ST = {"Form" : .5 * dot(q_0, q_0) * dx,
-             "List" : st_energy,
-             "Name" : "StokesEnergy"}
-tracked_quantities.append(energy_ST)
+def add_tracker(name, form):
+    _list = []
+    _dict = {"Form" : form, "List" : _list, "Name" : name}
+    tracked_quantities.append(_dict)
+def update_trackers():
+    for quantity in tracked_quantities:
+        quantity["List"].append(assemble(quantity["Form"]))
+l2sq = lambda v : dot(v, v)
+add_tracker("CahnHilliardEnergy", (k_rho/2*l2sq(grad(u_0)) + F(u_0))*dx)
+add_tracker("BiofilmMass", u_0 * dx)
+add_tracker("StokesEnergy", .5 * l2sq(q_0) * dx)
+add_tracker("MuGradientEnergy", l2sq(grad(mu_0)) * dx)
+add_tracker("ImbalanceU", (u_hat - u_0) * dx)
+add_tracker("ImbalanceC", (c_1_hat - c_1_0) * dx)
+add_tracker("ImbalanceS", (s_1_hat - s_1_0) * dx)
 if (C_1**2 + C_2**2) > 0:
-    rx_energy = []
-    energy_RX = {"Form" : r_u * mu_0 * dx,
-                 "List" : rx_energy,
-                 "Name" : "ReactionsEnergy"}
-    tracked_quantities.append(energy_RX)
+    add_tracker("ReactionsEnergy", r_u * mu_0 * dx)
+export_vars = {qty["Name"] : qty["List"] for qty in tracked_quantities}
+#---------------------------------------------------------------------#
+output_file = XDMFFile(OUTPUT_DIR + SIMULATION_NAME + ".xdmf")
+output_file.parameters['rewrite_function_mesh'] = False
+output_file.parameters["functions_share_mesh"]  = True
+output_file.parameters["flush_output"]          = True
 #---------------------------------------------------------------------#
 time_list = []
-variables_to_save = {}
-for qty in tracked_quantities:
-    variables_to_save |= {qty["Name"] : qty["List"]}
-##### ============================================================ #####
+iteration_list = []
+def write_results(t, n_it):
+    print("t = %.8e" % t)
+    for fx in [q_0, u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0]:
+        output_file.write(fx, t)
+    update_trackers()
+    time_list.append(t)
+    iteration_list.append(n_it)
+##### =========================================================== #####
 
-##### ============================================================ #####
-##### =================== TIME INTEGRATION ======================= #####
-##### ============================================================ #####
+##### =========================================================== #####
+##### =================== TIME INTEGRATION ====================== #####
+##### =========================================================== #####
 NLsolver = NewtonSolver()
 NLsolver.parameters['absolute_tolerance'] = NL_ABS_TOL
 NLsolver.parameters['relative_tolerance'] = NL_REL_TOL
 NLsolver.parameters['maximum_iterations'] = NL_MAX_IT
 NLsolver.parameters['linear_solver']      = "mumps"
-t, inc = 0., 0
-save_results(0.)
-for qty in tracked_quantities:
-    qty["List"].append(assemble(qty["Form"]))
-time_list.append(0.)
+t, inc, n_it = 0., 0, 0
 while (t < t_final):
     solve(stokes_problem, stokes_solution, stokes_bcs, 
           solver_parameters=stokes_parameters)
     assign(q_0, stokes_solution.sub(0))
     #-----------------------------------------------------------------#
-    NLsolver.solve(biofilm_problem, biofilm_solution.vector())
+    if (inc % inc_mod) == 0:
+        write_results(t, n_it)
+    #-----------------------------------------------------------------#
+    n_it, _ = NLsolver.solve(biofilm_problem, biofilm_solution.vector())
+    #-----------------------------------------------------------------#
+    t   += dt
+    inc += 1
+    # print("Iteration: %d/%d" % (inc, TIME_STEP_NUMBER))
+    #-----------------------------------------------------------------#
     assign(u_0,  biofilm_solution.sub(0))
     assign(mu_0, biofilm_solution.sub(1))
     assign(w_0,  biofilm_solution.sub(2))
@@ -480,19 +483,17 @@ while (t < t_final):
     _assign(c_2_0, _c_2)
     assign(s_1_0, biofilm_solution.sub(4))
     _assign(s_2_0, _s_2)
-    #-----------------------------------------------------------------#
-    t   += dt
-    inc += 1
-    # print("Iteration: %d/%d" % (inc, TIME_STEP_NUMBER))
-    #-----------------------------------------------------------------#
-    if (inc % inc_mod) == 0:
-        print("t = %.8e" % t)
-        save_results(t)
-        for qty in tracked_quantities:
-            qty["List"].append(assemble(qty["Form"]))
-        time_list.append(t)
+write_results(t, n_it)
+#---------------------------------------------------------------------#
 print("Saving tracked quantities...")
-variables_to_save |= {"time" : time_list}
-savemat(OUTPUT_DIR + SIMULATION_NAME + "_ENERGY.mat", variables_to_save)
+export_vars |= {"Time" : time_list, "NewtonIterations" : iteration_list}
+savemat(OUTPUT_DIR + SIMULATION_NAME + ".mat", export_vars)
 print("Done!")
-##### ============================================================ #####
+with XDMFFile(OUTPUT_DIR + SIMULATION_NAME + "_checkpoints.xdmf") as file:
+    file.write_checkpoint(u_0, "u", t)
+    file.write_checkpoint(q_0, "q", t, append=True)
+    file.write_checkpoint(mu_0, "mu", t, append=True)
+    file.write_checkpoint(c_1_0, "c_1", t, append=True)
+    file.write_checkpoint(s_1_0, "s_1", t, append=True)
+XDMFFile(OUTPUT_DIR + SIMULATION_NAME + "_mesh.xdmf").write(mesh)
+##### =========================================================== #####
