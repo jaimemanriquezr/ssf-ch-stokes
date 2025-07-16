@@ -191,9 +191,11 @@ stokes_space    = FunctionSpace(mesh, MixedElement(stokes_elements))
 ## at each time step. In other words, they correspond to u^{n+1}
 biofilm_solution  = Function(biofilm_space)
 u, mu, w, c_1, s_1, u_hat, c_1_hat, s_1_hat = split(biofilm_solution)
+biofilm_solution.rename("U_h", "biofilm: n+1 step")
 
 stokes_solution  = Function(stokes_space)
 q, p, xi = split(stokes_solution)
+stokes_solution.rename("Q_h", "stokes: n+1 step")
 
 ## The following functions hold the data of the initial data
 ## of each time step iteration, i.e. they correspond to u^{n}.
