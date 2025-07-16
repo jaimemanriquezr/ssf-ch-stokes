@@ -145,6 +145,7 @@ filter_args = {"filter_length": FILTER_LENGTH,
 mesh, bdy_fncs, ds = get_filter_geometry(mesh_N=N_MESH, 
                                          quads=args.quadrilaterals,
                                          **filter_args)
+XDMFFile(OUTPUT_DIR + SIMULATION_NAME + "_mesh.xdmf").write(mesh)
 
 q_null = Constant((0., 0.))
 q_in = INFLOW_VELOCITY
@@ -495,5 +496,4 @@ with XDMFFile(OUTPUT_DIR + SIMULATION_NAME + "_checkpoints.xdmf") as file:
     file.write_checkpoint(mu_0, "mu", t, append=True)
     file.write_checkpoint(c_1_0, "c_1", t, append=True)
     file.write_checkpoint(s_1_0, "s_1", t, append=True)
-XDMFFile(OUTPUT_DIR + SIMULATION_NAME + "_mesh.xdmf").write(mesh)
 ##### =========================================================== #####
