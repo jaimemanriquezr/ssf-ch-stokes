@@ -68,7 +68,7 @@ u_init, c_1_init, s_1_init = get_preset(PRESET_NAME, DENSITY_PARTICLES,
                                         DENSITY_LIQUIDS, KAPPA,
                                         PRESET_PARAMETER)
 #----------------------------------------------------------------------#
-psi, dpsi, dpsi_e, dpsi_i = get_bulk_potential(POTENTIAL_NAME, PSI_0,
+psi, dpsi, dpsi_i, dpsi_e = get_bulk_potential(POTENTIAL_NAME, PSI_0,
                                                DENSITY_PARTICLES, 
                                                PHI_STAR)
 ##### ============================================================ #####
