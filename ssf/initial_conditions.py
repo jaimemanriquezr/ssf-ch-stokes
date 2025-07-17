@@ -1,5 +1,4 @@
 from dolfin import Expression
-
 def CircleIC(x0, y0, r0, z0, kappa, deg = 2):
     _norm = "sqrt(pow(x[0] - X, 2) + pow(x[1] - Y, 2))"
     text = "Z * 1/2 * ( tanh( (R - %s) / sqrt(2*K) ) + 1)" % _norm
@@ -15,7 +14,7 @@ def RectangleIC(y0=0.0, z0=0.0, location="upper", deg = 2):
             text = "x[1] < Y ? Z : 0."
     return Expression(text, **params, degree=deg)
 
-def get_preset_conditions(name, rhob, rhof, kappa, dist=.05, deg=2):
+def get_preset(name, rhob, rhof, kappa, dist=.05, deg=2):
     match name:
         case "blobs":
             _norm1 = "sqrt(pow(x[0] - X1, 2) + pow(x[1] - Y1, 2))"
