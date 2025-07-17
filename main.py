@@ -105,7 +105,8 @@ match INFLOW_PROFILE:
 ##### ============================================================ #####
 ##### ========== FINITE ELEMENT SPACES AND FUNCTIONS ============= #####
 ##### ============================================================ #####
-biofilm_space, stokes_space = get_fem_spaces(mesh)
+biofilm_space, stokes_space = get_fem_spaces(mesh,
+                                             q_degree=args.q_degree)
 #----------------------------------------------------------------------#
 ## The following functions will hold the solutions of the scheme
 ## at each time step. In other words, they correspond to u^{n+1}
@@ -135,8 +136,10 @@ c_2_0 = Function(get_sub_space(c_1))
 c_2_0.rename("c_2", "concentration of biofilm component 2")
 s_2_0 = Function(get_sub_space(s_1))
 s_2_0.rename("s_2", "concentration of liquid component 2")
-q_0 = Function(get_sub_space(q[0]))
+q_0 = Function(stokes_space.sub(0).collapse())
 q_0.rename("q", "Stokes velocity of fluid")
+div_0 = Function(stokes_space.sub(1).collapse())
+div_0.rename("div_q", "Stokes velocity divergence")
 #----------------------------------------------------------------------#
 ## INITIAL CONDITIONS
 u_0.assign(u_init)
@@ -173,7 +176,8 @@ assign(biofilm_solution, [u_0, mu_0, w_0,
 ### STOKES
 phi_0 = u_0 / DENSITY_PARTICLES
 # Stokes functions:
-def strain(v): return 0.5 * (grad(v) + grad(v).T)
+def strain(v): 
+    return 0.5 * (grad(v) + grad(v).T)
 nu = VISCOSITY_LIQUID * (1 - phi_0) + VISCOSITY_BIOFILM * (phi_0)
 
 g = Constant((0., GRAVITY_CONSTANT))
@@ -330,6 +334,8 @@ var_file.write("kappa, lambda, ALPHA, GAMMA = %.2e, %.2e, %.2e, %i\n"
                 % (KAPPA, LAMBDA, ALPHA, GAMMA))
 var_file.write("nu_0, nu_1 = %.2e, %.2e\n" 
                 % (VISCOSITY_LIQUID, VISCOSITY_BIOFILM))
+var_file.write("abs_tol, rel_tol = %.2e, %.2e\n" 
+                % (NL_ABS_TOL, NL_REL_TOL))
 var_file.write("q_in, s_in = %.2e, %.2e\n" 
                 % (INFLOW_VELOCITY, INFLOW_CONCENTRATION))
 var_file.write("C_1, C_2 = %.2e, %.2e\n" 
@@ -345,15 +351,22 @@ def add_tracker(name, form):
     tracked_quantities.append(_dict)
 def update_trackers():
     for quantity in tracked_quantities:
-        quantity["List"].append(assemble(quantity["Form"]))
+        if quantity["Name"] == "DivergenceQ":
+            vec = quantity["Form"].vector()
+            value = np.abs(vec.get_local()).max()
+        else:
+            value = assemble(quantity["Form"])
+        quantity["List"].append(value)
 l2sq = lambda v : dot(v, v)
-add_tracker("CahnHilliardEnergy", (k_rho/2*l2sq(grad(u_0)) + psi(u_0))*dx)
+add_tracker("CahnHilliardEnergy", (k_rho/2*l2sq(grad(w_0)) + psi(w_0))*dx)
 add_tracker("BiofilmMass", u_0 * dx)
 add_tracker("StokesEnergy", .5 * l2sq(q_0) * dx)
 add_tracker("MuGradientEnergy", l2sq(grad(mu_0)) * dx)
 add_tracker("ImbalanceU", (u_hat - u_0) * dx)
 add_tracker("ImbalanceC", (c_1_hat - c_1_0) * dx)
 add_tracker("ImbalanceS", (s_1_hat - s_1_0) * dx)
+add_tracker("DivergenceQ", div_0)
+add_tracker("DivergenceQWeak", div_0 * dx)
 if (C_1**2 + C_2**2) > 0:
     add_tracker("ReactionsEnergy", r_u * mu_0 * dx)
 export_vars = {qty["Name"] : qty["List"] for qty in tracked_quantities}
@@ -367,7 +380,7 @@ time_list = []
 iteration_list = []
 def write_results(t, n_it):
     print("t = %.8e" % t)
-    for fx in [q_0, u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0]:
+    for fx in [q_0, u_0, mu_0, w_0, c_1_0, c_2_0, s_1_0, s_2_0, div_0]:
         output_file.write(fx, t)
     update_trackers()
     time_list.append(t)
@@ -387,11 +400,12 @@ while (t_it < TIME_STEP_NUMBER):
     solve(stokes_problem, stokes_solution, stokes_bcs, 
           solver_parameters=stokes_parameters)
     assign(q_0, stokes_solution.sub(0))
+    proj_assign(div_0, div(q_0))
+    #------------------------------------------------------------------#
+    n_its,_ = NLsolver.solve(biofilm_problem, biofilm_solution.vector())
     #------------------------------------------------------------------#
     if (t_it % inc_mod) == 0:
         write_results(t, n_its)
-    #------------------------------------------------------------------#
-    n_its,_ = NLsolver.solve(biofilm_problem, biofilm_solution.vector())
     #------------------------------------------------------------------#
     t   += dt
     t_it += 1
@@ -404,6 +418,7 @@ while (t_it < TIME_STEP_NUMBER):
     assign(s_1_0, biofilm_solution.sub(4))
     proj_assign(c_2_0, _c_2)
     proj_assign(s_2_0, _s_2)
+    proj_assign(div_0, div(q_0))
 write_results(t, n_its)
 #----------------------------------------------------------------------#
 print("Saving tracked quantities...")

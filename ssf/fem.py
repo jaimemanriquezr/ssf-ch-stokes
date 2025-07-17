@@ -17,7 +17,7 @@ class CahnHilliardEquation(NonlinearProblem):
         # Mass lumping: dF(x) = df + M
         A += self.mass
 
-def get_fem_spaces(mesh, k_particles=2, k_liquids=2):
+def get_fem_spaces(mesh, k_particles=2, k_liquids=2, q_degree=2):
     DG_0 = FiniteElement("DG", mesh.ufl_cell(), 0)
     CG_1 = FiniteElement("CG", mesh.ufl_cell(), 1)
     R = FiniteElement("Real", mesh.ufl_cell(), 0)
@@ -29,8 +29,12 @@ def get_fem_spaces(mesh, k_particles=2, k_liquids=2):
     biofilm_elements = u_list + c_s_list + hat_list
     biofilm_space = FunctionSpace(mesh, MixedElement(biofilm_elements))
 
-    q_element = VectorElement("CG", mesh.ufl_cell(), 4)
-    p_element = FiniteElement("DG", mesh.ufl_cell(), 3)
+    if q_degree <= 2:
+        q_element = VectorElement("CG", mesh.ufl_cell(), 2)
+        p_element = FiniteElement("DG", mesh.ufl_cell(), 0)
+    else:
+        q_element = VectorElement("CG", mesh.ufl_cell(), q_degree)
+        p_element = FiniteElement("DG", mesh.ufl_cell(), q_degree-1)
     stokes_elements = [q_element, p_element, R]
     stokes_space = FunctionSpace(mesh, MixedElement(stokes_elements))
     return biofilm_space, stokes_space

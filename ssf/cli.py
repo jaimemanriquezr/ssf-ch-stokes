@@ -87,6 +87,7 @@ def get_argument_parser():
 
     parser.add_argument("--quadrilaterals", 
                         action='store_true')
+    parser.add_argument("--q_degree", type=int, default=2)
 
     parser.add_argument("--abs_tol", type=float,
                         default=1E-9)
